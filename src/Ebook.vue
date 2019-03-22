@@ -1,24 +1,6 @@
 <template>
   <div class="ebook">
-    <transition name='slide-down'>
-    <div class="title-wrapper"
-      v-show="ifTitleAndMenuShow">
-      <div class="left">
-        <span class="icon-back icon"></span>
-      </div>
-      <div class="right">
-        <div class="iocn-wrapper">
-          <span class="icon-cart icon"></span>
-        </div>
-         <div class="iocn-wrapper">
-          <span class="icon-person icon"></span>
-        </div>
-         <div class="iocn-wrapper">
-          <span class="icon-more icon"></span>
-        </div>
-      </div>
-    </div>
-    </transition>
+    <title-bar :ifTitleAndMenuShow='ifTitleAndMenuShow'></title-bar>
     <div class="read-wrapper">
       <div id="read">
       </div>
@@ -28,36 +10,43 @@
           <div class="right" @click="nextPage"></div>
         </div>
     </div>
-    <transition name="slide-up">
-      <div class="menu-wrapper" v-show="ifTitleAndMenuShow">
-        <div class="icon-wrapper">
-          <span class="icon-menu icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-progress icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-bright icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-a icon">A</span>
-        </div>
-      </div>
-    </transition>
+    <menu-bar 
+    :ifTitleAndMenuShow='ifTitleAndMenuShow'
+    :fontSizeList='fontSizeList'
+    :defaultSize='defaultSize'
+    @setFontSize= 'setFontSize'
+     ref="menuBar"></menu-bar>
   </div>
 </template>
 <script>
 import Epub from 'epubjs'
+import TitleBar from '@/components/TitleBar'
+import MenuBar from '@/components/MenuBar'
 const DOWNLOAD_URL = '/static/2018_Book_AgileProcessesInSoftwareEngine.epub'
 export default {
   data(){
     return{
-      ifTitleAndMenuShow: false
+      ifTitleAndMenuShow: false,
+      defaultSize: 16,
+      fontSizeList: [
+        {'fontSize': 12},
+        {'fontSize': 14},
+        {'fontSize': 16},
+        {'fontSize': 18},
+        {'fontSize': 20},
+        {'fontSize': 22}
+      ]
     }
+  },
+  components: {
+    TitleBar, MenuBar
   },
   methods: {
     toggleTitleAndMenu(){
       this.ifTitleAndMenuShow = !this.ifTitleAndMenuShow
+      if(!this.ifTitleAndMenuShow){
+        this.$refs.menuBar.ifSettingShow = false
+      }
     },
     showEpub () {
       this.book = new Epub(DOWNLOAD_URL)
@@ -66,6 +55,8 @@ export default {
         height: window.innerHeight
       })
       this.rendition.display()
+      this.thems = this.rendition.themes
+      this.setFontSize(this.defaultSize)
     },
     prevPage(){
       if(this.rendition){
@@ -75,6 +66,12 @@ export default {
     nextPage(){
       if(this.rendition){
         this.rendition.next()
+      }
+    },
+    setFontSize(fontSize) {
+      this.defaultSize = fontSize
+      if(this.thems){
+        this.thems.fontSize(this.defaultSize + 'px')
       }
     }
   },
@@ -87,33 +84,6 @@ export default {
   @import "assets/styles/global";
   .ebook {
     position: relative;
-    .title-wrapper{
-      position: absolute;
-      top:0;
-      left:0;
-      width:100%;
-      z-index: 101;
-      height: px2rem(48);
-      background: white;
-      box-shadow: 0 px2rem(8) px2rem(8) rgba(0, 0, 0, .15);
-      display: flex;
-      .left{
-        flex: 0 0 px2rem(60);
-        @include center;
-      }
-      .right{
-        flex:1;
-        display:flex;
-        justify-content: flex-end;
-        .iocn-wrapper{
-          flex:0 0 px2rem(40);
-          @include center;
-          .icon-cart{
-            font-size: px2rem(22);
-          }
-        }
-      }
-    }
     .read-wrapper{
       .mask{
         position: absolute;
@@ -133,24 +103,6 @@ export default {
           flex: 0 0 px2rem(100);
         }
 
-      }
-    }
-     .menu-wrapper{
-      position: absolute;
-      bottom:0;
-      left:0;
-      width:100%;
-      z-index: 101;
-      display: flex;
-      height: px2rem(48);
-      background: white;
-      box-shadow: 0 px2rem(-8) px2rem(8) rgba(0, 0, 0, .15);
-      .icon-wrapper{
-        flex: 1;
-        @include center;
-        .icon-bright,.icon-progress{
-          font-size: px2rem(25);
-        }
       }
     }
   }
