@@ -10,11 +10,18 @@
           <div class="right" @click="nextPage"></div>
         </div>
     </div>
-    <menu-bar 
+    <menu-bar
     :ifTitleAndMenuShow='ifTitleAndMenuShow'
     :fontSizeList='fontSizeList'
     :defaultSize='defaultSize'
     @setFontSize= 'setFontSize'
+    :defaultThems='defaultThems'
+    :themeList='themeList'
+    @setThems='setThems'
+    :bookAvailable = 'bookAvailable'
+    @onProgressChange = 'onProgressChange'
+    @jumpTo = 'jumpTo'
+    :navigation = 'navigation'
      ref="menuBar"></menu-bar>
   </div>
 </template>
@@ -28,6 +35,8 @@ export default {
     return{
       ifTitleAndMenuShow: false,
       defaultSize: 16,
+      defaultThems:0,
+      bookAvailable:false,
       fontSizeList: [
         {'fontSize': 12},
         {'fontSize': 14},
@@ -35,17 +44,62 @@ export default {
         {'fontSize': 18},
         {'fontSize': 20},
         {'fontSize': 22}
-      ]
+      ],
+      themeList:[
+        {
+          name:'default',
+          style:{ body:{color:'#000',background:'#fff'} }
+        },
+        {
+          name:'eye',
+          style:{ body:{color:'#000',background:'#ceeaba'} }
+        },
+        {
+          name:'night',
+          style:{ body:{color:'#fff',background:'#000'} }
+        },
+        {
+          name:'gold',
+          style:{ body:{color:'#000',background:'rgb(243,236,226)'} }
+        }
+      ],
+      navigation: {}
     }
   },
   components: {
     TitleBar, MenuBar
   },
   methods: {
+    getDefault(){
+      if(localStorage.getItem('defaultSize')){
+        this.defaultSize = parseInt(localStorage.getItem('defaultSize'))
+        // this.setFontSize(this.defaultSize)
+      }
+      if(localStorage.getItem('defaultThems')){
+        this.defaultThems = parseInt(localStorage.getItem('defaultThems'))
+        // this.setThems(this.defaultThems)
+      }
+    },
+    jumpTo(href){
+      this.rendition.display(href)
+      this.hideMenuAndTitle()
+    },
+    hideMenuAndTitle(){
+      this.ifTitleAndMenuShow = false
+      this.$refs.menuBar.hideContent()
+      this.$refs.menuBar.hideSetting()
+    },
+    onProgressChange(progresss){
+      const percentage = progresss / 100
+      const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0
+      this.rendition.display(location)
+    },
     toggleTitleAndMenu(){
       this.ifTitleAndMenuShow = !this.ifTitleAndMenuShow
       if(!this.ifTitleAndMenuShow){
         this.$refs.menuBar.ifSettingShow = false
+        this.$refs.menuBar.ifThemeShow = false
+        this.$refs.menuBar.ifProgressShow = false
       }
     },
     showEpub () {
@@ -57,6 +111,25 @@ export default {
       this.rendition.display()
       this.thems = this.rendition.themes
       this.setFontSize(this.defaultSize)
+      this.setThems(this.defaultThems)
+      this.registerThems()
+      this.book.ready.then(() => {
+        this.navigation = this.book.navigation
+        return this.book.locations.generate()
+      }).then(res => {
+        this.locations = this.book.locations
+        this.bookAvailable = true
+      })
+    },
+    setThems(index){
+      this.thems.select(this.themeList[index].name)
+      this.defaultThems = index
+      localStorage.setItem('defaultThems',index)
+    },
+    registerThems(){
+      this.themeList.forEach(thems => {
+        this.thems.register(thems.name,thems.style)
+      })
     },
     prevPage(){
       if(this.rendition){
@@ -71,11 +144,13 @@ export default {
     setFontSize(fontSize) {
       this.defaultSize = fontSize
       if(this.thems){
+        localStorage.setItem('defaultSize',fontSize)
         this.thems.fontSize(this.defaultSize + 'px')
       }
     }
   },
   mounted () {
+    this.getDefault()
     this.showEpub()
   }
 }

@@ -2,10 +2,13 @@
    <transition name='slide-down'>
     <div class="title-wrapper"
       v-show="ifTitleAndMenuShow">
-      <div class="left">
+      <!-- <div class="left">
         <span class="icon-back icon"></span>
-      </div>
-      <div class="right">
+      </div> -->
+      <div class="title">劫天运小说交流群：
+        <span>376289925</span>
+        </div>
+      <!-- <div class="right">
         <div class="iocn-wrapper">
           <span class="icon-cart icon"></span>
         </div>
@@ -15,7 +18,7 @@
          <div class="iocn-wrapper">
           <span class="icon-more icon"></span>
         </div>
-      </div>
+      </div> -->
     </div>
     </transition>
 </template>
@@ -40,9 +43,17 @@ export default {
       width:100%;
       z-index: 101;
       height: px2rem(48);
-      background: white;
+      background: #fff;
       box-shadow: 0 px2rem(8) px2rem(8) rgba(0, 0, 0, .15);
       display: flex;
+      .title{
+        width: 100%;
+        @include center;
+        font-size: px2rem(16);
+        span{
+          color: red;
+        }
+      }
       .left{
         flex: 0 0 px2rem(60);
         @include center;
